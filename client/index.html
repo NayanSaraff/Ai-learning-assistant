@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Learning Assistant v2</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div id="preloader">
+  <div class="preloader-ring">
+    <svg viewBox="0 0 100 100">
+      <circle class="ring-bg" cx="50" cy="50" r="42"/>
+      <circle class="ring-fill" cx="50" cy="50" r="42"/>
+    </svg>
+    <span class="preloader-text">Loading..</span>
+  </div>
+</div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <div class="sidebar-logo">
+      <span class="logo-mark">LA</span>
+      <span class="logo-text">Learning Assistant</span>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <details class="sidebar-accordion">
+    <summary>
+      <span class="accordion-title"><span class="accordion-arrow">›</span> Session History</span>
+      <button class="text-btn" id="clearHistory">Clear</button>
+    </summary>
+    <div class="history-list" id="historyList">
+      <p class="history-empty">No history yet.<br/>Queries appear here.</p>
+    </div>
+  </details>
+
+  <details class="sidebar-accordion">
+    <summary>
+      <span class="accordion-title"><span class="accordion-arrow">›</span> Bookmarks</span>
+      <button class="text-btn" id="clearBookmarks">Clear</button>
+    </summary>
+    <div class="history-list" id="bookmarkList">
+      <p class="history-empty">No bookmarks yet.<br/>Star a response to save it.</p>
+    </div>
+  </details>
+
+  <div class="sidebar-footer">
+    <a href="/docs" target="_blank" class="docs-link">API Docs</a>
+    <button class="text-btn" id="clearCacheBtn">Clear Cache</button>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<main class="main" id="main">
+  <header class="header">
+    <div class="header-left">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <h1 class="app-title">AI Learning Assistant</h1>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-toggle" id="themeToggle" title="Toggle theme">☾</button>
+
+      <div class="dropdown settings-dropdown">
+        <button class="icon-toggle" id="settingsToggle" title="Settings" aria-expanded="false">Aa</button>
+        <div class="dropdown-menu settings-menu" id="settingsMenu">
+          <span class="menu-label">Text size</span>
+          <div class="font-size-ctrl">
+            <button class="fs-btn" id="fsDown" title="Smaller text">A-</button>
+            <button class="fs-btn" id="fsUp" title="Larger text">A+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-chip" id="statusChip">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-txt" id="statusTxt">Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats-strip" aria-label="Learning stats">
+    <div class="strip-stat">
+      <span class="stat-value" id="statQueries">0</span>
+      <span class="stat-label">Queries</span>
+    </div>
+    <div class="strip-stat">
+      <span class="stat-value" id="statChars">0</span>
+      <span class="stat-label">Chars</span>
+    </div>
+    <div class="strip-stat">
+      <span class="stat-value streak-val" id="statStreak">0</span>
+      <span class="stat-label">Streak</span>
+    </div>
+    <div class="strip-progress">
+      <span>Daily progress</span>
+      <div class="mini-progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span id="progressPct">0%</span>
+    </div>
+  </section>
+
+  <section class="smart-toolbar" aria-label="Learning controls">
+    <div class="dropdown toolbar-dropdown">
+      <button class="toolbar-btn" id="modeToggle" aria-expanded="false">
+        <span class="toolbar-icon" id="currentModeIcon">i</span>
+        <span id="currentModeLabel">Explain</span>
+        <span class="chevron">⌄</span>
+      </button>
+      <div class="dropdown-menu mode-menu" id="modeMenu">
+        <div class="pill-group" id="pillGroup">
+          <button class="pill active" data-feature="explain"><span>i</span> Explain</button>
+          <button class="pill" data-feature="summarize"><span>≡</span> Summarize</button>
+          <button class="pill" data-feature="quiz"><span>?</span> Quiz</button>
+          <button class="pill" data-feature="eli5"><span>5</span> ELI5</button>
+          <button class="pill" data-feature="flashcards"><span>□</span> Flashcards</button>
+          <button class="pill" data-feature="studyplan"><span>✓</span> Study Plan</button>
+          <button class="pill" data-feature="mindmap"><span>•</span> Mind Map</button>
+          <button class="pill" data-feature="custom"><span>*</span> Custom</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dropdown toolbar-dropdown">
+      <button class="toolbar-btn" id="optionsToggle" aria-expanded="false">
+        <span class="toolbar-icon">⚙</span>
+        <span>Options</span>
+        <span class="chevron">⌄</span>
+      </button>
+      <div class="dropdown-menu options-menu" id="optionsMenu">
+        <div class="control-group">
+          <label class="ctrl-label">Difficulty</label>
+          <div class="seg-ctrl" id="diffCtrl">
+            <button class="seg" data-diff="beginner">Beginner</button>
+            <button class="seg active" data-diff="intermediate">Intermediate</button>
+            <button class="seg" data-diff="expert">Expert</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="ctrl-label" for="langSelect">Language</label>
+          <select class="select-ctrl" id="langSelect">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="ja">Japanese</option>
+            <option value="zh">Chinese</option>
+            <option value="ar">Arabic</option>
+            <option value="pt">Portuguese</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="ctrl-label" for="modelSelect">Model</label>
+          <select class="select-ctrl" id="modelSelect">
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+            <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+            <option value="gemma2-9b-it">Gemma 2 9B</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="custom-panel" id="customPanel">
+    <label class="ctrl-label">Custom System Prompt</label>
+    <textarea id="customPromptInput" class="custom-textarea" rows="3"
+      placeholder="Example: You are a Socratic teacher. Ask questions rather than giving answers directly."></textarea>
+  </div>
+
+  <section class="input-section">
+    <div class="input-shell">
+      <textarea id="userInput" class="main-textarea"
+        placeholder="Paste a topic, concept, passage, or question here... (Ctrl+Enter to submit)"
+        rows="6"></textarea>
+      <div class="textarea-actions">
+        <button class="meta-btn" id="voiceBtn" title="Voice input">🎙</button>
+        <label class="meta-btn" title="Upload .txt or .md file" for="fileUpload">📎</label>
+      </div>
+    </div>
+    <input type="file" id="fileUpload" accept=".txt,.md" hidden/>
+
+    <div class="input-footer">
+      <span class="error-msg" id="errorMsg"></span>
+      <span class="char-count" id="charCount">0 chars</span>
+      <div class="warning-msg" id="charWarning"></div>
+    </div>
+  </section>
+
+  <div class="action-row">
+    <button class="submit-btn" id="submitBtn">
+      <span id="btnLabel">Generate</span>
+      <div class="btn-spinner" id="btnSpinner"></div>
+      <span class="btn-arrow" id="btnArrow">→</span>
+    </button>
+    <button class="action-icon-btn icon-only" id="ttsBtn" title="Read response aloud" disabled>♪</button>
+    <button class="action-icon-btn icon-only" id="fullscreenBtn" title="Fullscreen reading mode" disabled>⤢</button>
+    <button class="export-link" id="exportPdfBtn" title="Export to PDF" disabled>PDF</button>
+    <button class="export-link" id="exportMdBtn" title="Export as Markdown" disabled>.md</button>
+  </div>
+
+  <div class="followup-section" id="followupSection" style="display:none">
+    <div class="followup-thread" id="followupThread"></div>
+    <div class="followup-input-row">
+      <input type="text" id="followupInput" class="followup-input"
+        placeholder="Ask a follow-up question about this topic..."/>
+      <button class="followup-send" id="followupSend">Send</button>
+    </div>
+  </div>
+  <div class="progress-bar-wrap" id="progressBarWrap">
+  <div class="progress-bar-fill" id="progressBarFill"></div>
+  <span class="progress-bar-pct" id="progressBarPct">0%</span>
+</div>
+  <section class="output-section" id="outputSection">
+    <div class="skeleton" id="skeleton">
+      <div class="skel-line w100"></div>
+      <div class="skel-line w75"></div>
+      <div class="skel-line w100"></div>
+      <div class="skel-line w50"></div>
+      <div class="skel-line w85"></div>
+      <div class="skel-line w100"></div>
+      <div class="skel-line w60"></div>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <div class="empty-orb">AI</div>
+      <p>Choose a mode, enter your input, then generate a response.</p>
+      <p class="empty-hint">Ctrl+Enter submits. Use voice or file upload from the text box.</p>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-topbar">
+        <div class="result-left">
+          <span class="result-badge" id="resultBadge">Mode</span>
+          <span class="result-model" id="resultModel"></span>
+          <span class="cached-badge" id="cachedBadge" style="display:none">Cached</span>
+        </div>
+        <div class="result-actions">
+          <button class="act-btn" id="rateUp" title="Helpful">Good</button>
+          <button class="act-btn" id="rateDown" title="Not helpful">Bad</button>
+          <button class="act-btn" id="bookmarkBtn" title="Bookmark">Save</button>
+          <button class="act-btn" id="copyMdBtn" title="Copy as Markdown">MD</button>
+          <button class="act-btn" id="copyBtn" title="Copy text">Copy</button>
+        </div>
+      </div>
+
+      <div class="quiz-interactive" id="quizInteractive" style="display:none">
+        <div class="quiz-score-bar">
+          <span>Interactive Quiz</span>
+          <span id="quizScoreDisplay">Score: 0 / 0</span>
+        </div>
+        <div id="quizContainer"></div>
+      </div>
+
+      <div class="flashcard-view" id="flashcardView" style="display:none">
+        <div class="fc-nav">
+          <button class="fc-btn" id="fcPrev">←</button>
+          <span id="fcCounter">1 / 1</span>
+          <button class="fc-btn" id="fcNext">→</button>
+        </div>
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+          <div class="fc-inner" id="fcInner">
+            <div class="fc-front" id="fcFront"></div>
+            <div class="fc-back" id="fcBack"></div>
+          </div>
+        </div>
+        <p class="fc-hint">Click card to flip</p>
+      </div>
+
+      <div class="result-body markdown-body" id="resultBody"></div>
+    </div>
+  </section>
+</main>
+
+<div class="fullscreen-modal" id="fullscreenModal">
+  <div class="fs-inner">
+    <button class="fs-close" id="fsClose">Close</button>
+    <div class="fs-content markdown-body" id="fsContent"></div>
+  </div>
+</div>
+
+<div class="pomodoro-widget" id="pomodoroWidget">
+  <div class="pomo-header">
+    <span>Pomodoro</span>
+    <button class="pomo-close" id="pomoClose">Close</button>
+  </div>
+  <div class="pomo-time" id="pomoTime">25:00</div>
+  <div class="pomo-controls">
+    <button class="pomo-btn" id="pomoStart">Start</button>
+    <button class="pomo-btn" id="pomoReset">Reset</button>
+  </div>
+  <p class="pomo-tip" id="pomoTip">Stay focused. You've got this!</p>
+</div>
+<button class="pomo-fab" id="pomoFab" title="Pomodoro Timer">25</button>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Environment variables — NEVER commit these
+server/.env
+
+# Dependencies
+server/node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+nodemon-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Build/output
+dist/
+build/
+
+# Screenshots (optional — remove if you want to include them)
+screenshots/
