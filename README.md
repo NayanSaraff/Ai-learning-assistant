@@ -1,14 +1,6 @@
-# AI Learning Assistant v2
+# AI Learning Assistant
 
 > A fully-featured AI-powered study tool built on **Groq (Llama 3.3 70B)** — Node.js · Express · Vanilla JS
-
----
-
-## What's New in v2
-
-Everything from v1, plus **25+ new features** across AI modes, export, UI, accessibility, analytics, and backend.
-
----
 
 ## Features
 
@@ -86,7 +78,7 @@ Everything from v1, plus **25+ new features** across AI modes, export, UI, acces
 ## Project Structure
 
 ```
-ai-learning-assistant-v2/
+ai-learning-assistant/
 ├── server/
 │   ├── server.js               ← Express entry point + rate limiting
 │   ├── routes/
@@ -110,7 +102,7 @@ ai-learning-assistant-v2/
 
 ```bash
 # 1. Go to server directory
-cd ai-learning-assistant-v2/server
+cd ai-learning-assistant/server
 
 # 2. Install dependencies
 npm install
@@ -183,4 +175,4 @@ Voice input requires Chrome or Edge (Web Speech API).
 
 ---
 
-*AI Learning Assistant v2 · Node.js + Express + Groq (Llama 3.3 70B)*
+*AI Learning Assistant · Node.js + Express + Groq (Llama 3.3 70B)*
